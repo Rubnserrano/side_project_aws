@@ -67,15 +67,13 @@ resource "aws_iam_role_policy" "lambda_s3_access" {
     }]
   })
 }
-
 resource "aws_lambda_function" "s3_event_lambda" {
   function_name = "landing_bucket_file_handler"
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "index.handler"
   runtime       = "python3.9"
 
-  filename = "../etl/lambda_functions/lambda_function.zip"  # Ruta relativa
-
+  filename         = "../etl/lambda_functions/lambda_function.zip"
   source_code_hash = filebase64sha256("../etl/lambda_functions/lambda_function.zip")
 
   environment {
@@ -83,7 +81,10 @@ resource "aws_lambda_function" "s3_event_lambda" {
       BUCKET_NAME = aws_s3_bucket.landing_bucket.bucket
     }
   }
+
+  layers = [aws_lambda_layer_version.lambda_landing.arn]   # <- aquí agregas la layer
 }
+
 
 # 2. Crear el trigger S3 para la Lambda
 
@@ -109,3 +110,12 @@ resource "aws_lambda_permission" "allow_s3" {
   source_arn    = aws_s3_bucket.landing_bucket.arn
 }
 
+
+
+# Recurso para Lambda Layer
+resource "aws_lambda_layer_version" "lambda_landing" {
+  filename           = "../artifacts/layers/lambda_landing.zip"   # ruta a tu zip layer
+  layer_name         = "lambda_landing"
+  compatible_runtimes = ["python3.9"]
+  description        = "Layer con librerías para Lambda landing"
+}
