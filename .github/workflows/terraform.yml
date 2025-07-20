@@ -33,6 +33,11 @@ jobs:
       - name: Terraform Validate
         run: cd terraform && terraform validate
 
+      - name: Terraform Refresh
+      # Este paso actualiza el estado de Terraform leyendo la configuración actual de los recursos en la nube.
+      # Ayuda a detectar 'drift' y a que Terraform sepa qué recursos ya existen y están gestionados.
+        run: cd terraform && terraform refresh
+
       - name: Terraform Plan
         run: cd terraform && terraform plan
 
